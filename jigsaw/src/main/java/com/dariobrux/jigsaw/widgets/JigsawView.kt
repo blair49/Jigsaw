@@ -3,12 +3,14 @@ package com.dariobrux.jigsaw.widgets
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import com.dariobrux.jigsaw.Constants
 import com.dariobrux.jigsaw.Engine
 import com.dariobrux.jigsaw.R
 import com.dariobrux.jigsaw.adapters.GridAdapter
+import com.dariobrux.jigsaw.databinding.LayoutJigsawBinding
 import com.dariobrux.jigsaw.extensions.toInvisible
 import com.dariobrux.jigsaw.interfaces.OnJigsawListenerAdapter
 import com.dariobrux.jigsaw.interfaces.OnTileSelectedListener
@@ -16,7 +18,6 @@ import com.dariobrux.jigsaw.models.Tile
 import com.dariobrux.jigsaw.models.TileDecorator
 import com.dariobrux.jigsaw.models.TileEmpty
 import com.dariobrux.jigsaw.models.TileFull
-import kotlinx.android.synthetic.main.layout_jigsaw.view.*
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -30,13 +31,15 @@ import kotlin.math.sqrt
 
 class JigsawView(context: Context, attributeSet: AttributeSet) : FrameLayout(context, attributeSet), OnTileSelectedListener {
 
+    private val binding = LayoutJigsawBinding.inflate(LayoutInflater.from(context), this, true)
+
     var bitmap: Bitmap? = null
         set(value) {
             field = value
             if (value == null) return
             engine = Engine(value, pieces, rows, cols, tileDecorator)
-            gridView.init(engine!!.tileEmptyList, rows, cols, false, this)
-            spreadView.init(engine!!.tileFullList.shuffled().toMutableList(), rows, spreadCols, true, this)
+            binding.gridView.init(engine!!.tileEmptyList, rows, cols, false, this)
+            binding.spreadView.init(engine!!.tileFullList.shuffled().toMutableList(), rows, spreadCols, true, this)
         }
 
     var pieces = 0
@@ -58,11 +61,11 @@ class JigsawView(context: Context, attributeSet: AttributeSet) : FrameLayout(con
     var tileDecorator = TileDecorator()
 
     var tileSize = Constants.DEFAULT_TILE_SIZE
-    set(value) {
-        field = value
-        Constants.DEFAULT_TILE_SIZE = value
-        Constants.DEFAULT_CAP_RADIUS = Constants.DEFAULT_TILE_SIZE / 6f
-    }
+        set(value) {
+            field = value
+            Constants.DEFAULT_TILE_SIZE = value
+            Constants.DEFAULT_CAP_RADIUS = Constants.DEFAULT_TILE_SIZE / 6f
+        }
 
     private var rows = 0
     private var cols = 0
@@ -78,15 +81,13 @@ class JigsawView(context: Context, attributeSet: AttributeSet) : FrameLayout(con
     private var selectedView: TileView? = null
 
     init {
-        inflate(getContext(), R.layout.layout_jigsaw, this)
-
         val typedArray = context.obtainStyledAttributes(attributeSet, R.styleable.JigsawView)
         tileDecorator.borderColor = typedArray.getColor(R.styleable.JigsawView_jv_tileBorderColor, tileDecorator.borderColor)
         tileDecorator.borderWidth = typedArray.getDimension(R.styleable.JigsawView_jv_tileBorderWidth, tileDecorator.borderWidth)
         pieces = typedArray.getInt(R.styleable.JigsawView_jv_pieces, Constants.DEFAULT_ITEMS)
         tileSize = typedArray.getDimension(R.styleable.JigsawView_jv_tileSize, Constants.DEFAULT_TILE_SIZE.toFloat()).toInt()
         typedArray.getDrawable(R.styleable.JigsawView_jv_borderBoard)?.let {
-            gridView?.background = it
+            binding.gridView.background = it
         }
 
         spreadCols = typedArray.getInt(R.styleable.JigsawView_jv_spreadBoardCols, cols)
@@ -121,8 +122,8 @@ class JigsawView(context: Context, attributeSet: AttributeSet) : FrameLayout(con
 
     fun setOnJigsawListener(listener: OnJigsawListenerAdapter) {
         this.onJigsawListenerAdapter = listener
-        gridView?.setOnJigsawListener(listener)
-        spreadView?.setOnJigsawListener(listener)
+        binding.gridView.setOnJigsawListener(listener)
+        binding.spreadView.setOnJigsawListener(listener)
     }
 
     override fun onTileSelected(adapter: GridAdapter, view: TileView, tile: TileFull, position: Int) {
